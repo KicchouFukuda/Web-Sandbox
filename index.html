@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命運的試煉</title>
+    <style>
+        /* --- 基礎奇幻風格樣式 --- */
+        :root {
+            --bg-dark: #0d1117;
+            --gold-primary: #d4af37;
+            --gold-light: #f3e5ab;
+            --error-red: #e74c3c;
+            --success-green: #2ecc71;
+            --text-light: #eceff1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 奇幻星空背景粒子 */
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .scene {
+            position: absolute;
+            width: 90%;
+            max-width: 450px;
+            padding: 30px 20px;
+            border-radius: 20px;
+            background: rgba(20, 25, 35, 0.85);
+            border: 2px solid var(--gold-primary);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.9);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .scene.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        /* 通用奇幻按鈕 */
+        .btn {
+            background: linear-gradient(135deg, #1f2535 0%, #0d1117 100%);
+            border: 1px solid var(--gold-primary);
+            color: var(--gold-light);
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+            outline: none;
+            width: 100%;
+            margin-top: 20px;
+            letter-spacing: 2px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* --- 首頁樣式 --- */
+        .home-title {
+            font-size: 2.2rem;
+            color: var(--gold-primary);
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+            letter-spacing: 4px;
+        }
+
+        .home-subtitle {
+            font-size: 0.95rem;
+            color: #8a99ad;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* --- 遊戲頁樣式 --- */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1f2535;
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 20%;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-light));
+            transition: width 0.5s ease;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.5;
+            color: #ffffff;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .opt-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--text-light);
+            padding: 16px;
+            font-size: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* 狀態色彩控制 */
+        .opt-btn.wrong {
+            background-color: var(--error-red) !important;
+            border-color: var(--error-red) !important;
+            color: white;
+            animation: shake 0.4s ease;
+        }
+
+        .opt-btn.correct {
+            background-color: var(--success-green) !important;
+            border-color: var(--success-green) !important;
+            color: white;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .opt-btn.disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        /* --- 信件場景與 3D 翻轉動畫 --- */
+        .letter-scene {
+            perspective: 1000px;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+        }
+
+        .envelope {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: #cc9966;
+            margin: 0 auto;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.8s ease;
+        }
+
+        /* 信封上蓋 */
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 100px solid #b3804d;
+            transform-origin: top;
+            transition: transform 0.5s ease 0.2s;
+            z-index: 3;
+        }
+
+        /* 信封正面下方口袋效果 */
+        .envelope-pocket {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #d9a673 0%, #b3804d 100%);
+            clip-path: polygon(0 0, 150px 100px, 300px 0, 300px 200px, 0 200px);
+            z-index: 2;
+        }
+
+        /* 內藏的信紙 */
+        .letter-paper {
+            position: absolute;
+            bottom: 5px;
+            left: 15px;
+            width: 270px;
+            height: 180px;
+            background: #fffdf0;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.7s, width 0.6s ease 1.5s, height 0.6s ease 1.5s, left 0.6s ease 1.5s, bottom 0.6s ease 1.5s;
+            overflow: hidden;
+        }
+
+        /* 信件展開動畫觸發狀態 */
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 0;
+        }
+
+        .envelope.open .letter-paper {
+            transform: translateY(-120px);
+            z-index: 4;
+            width: 320px;
+            height: 460px;
+            left: -10px;
+            bottom: -130px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+
+        /* 信件文字內容 */
+        .letter-content {
+            color: #2c3e50;
+            text-align: left;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            opacity: 0;
+            transition: opacity 0.5s ease 2.1s;
+            height: 100%;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            padding-right: 5px;
+        }
+
+        .envelope.open .letter-content {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 星空背景 -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- 1. 首頁場景 -->
+    <div id="scene-home" class="scene active">
+        <h1 class="home-title">命運的試煉</h1>
+        <p class="home-subtitle">歡迎來到這場探索之旅。<br>前方有五道題目<br>唯有真心與回憶交織<br>才能開啟最終隱藏的奧秘。</p>
+        <button class="btn" onclick="switchScene('scene-game')">開始遊戲</button>
+    </div>
+
+    <!-- 2. 遊戲頁場景 -->
+    <div id="scene-game" class="scene">
+        <div id="progress-bar" class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        <div id="question-text" class="question-text">載入中...</div>
+        <div id="options-container" class="options-container"></div>
+        <!-- 讀取書信按鈕，一開始先隱藏 -->
+        <button id="btn-read-letter" class="btn" style="display: none;" onclick="goLetterScene()">讀取書信</button>
+    </div>
+
+    <!-- 3. 信件動畫場景 -->
+    <div id="scene-letter" class="scene letter-scene">
+        <div id="envelope" class="envelope" onclick="openLetter()">
+            <div class="envelope-flap"></div>
+            <div class="envelope-pocket"></div>
+            <div class="letter-paper">
+                <div id="letter-text" class="letter-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 題目與答案資料庫（你可以在這裡修改題目內容） ---
+        const quizData = [
+            {
+                q: "第一次單獨出去吃飯時，去了哪一間店？",
+                options: ["有沐咖啡", "池子咖啡", "食光機"],
+                correct: 1 // 對應選項的 index
+            },
+            {
+                q: "開始聊天的第一句訊息，我傳了什麼？",
+                options: ["哈囉", "貼圖", "新年快樂"],
+                correct: 2
+            },
+            {
+                q: "我最喜歡叫妳什麼？",
+                options: ["安安", "D.O.G", "小安"],
+                correct: 0
+            },
+            {
+                q: "是在哪一個瞬間，我確定自己對你心動了？",
+                options: ["第一次出去吃飯", "聊到凌晨三點那天", "其實每一次見面，我都重新心動了一次"],
+                correct: 2
+            },
+            {
+                q: "最後一道題目就是，我們的交往紀念日是幾號？",
+                options: ["5/22", "8/5", "8/20"],
+                correct: 0 // 這題無論選哪一個，在程式邏輯裡我都會設定為答對，不影響體驗
+            }
+        ];
+
+        // --- 2. 你的告白信件內容（可在這裡自由修改） ---
+        const loveLetterContent = `安安：
+謝謝妳回答完這五個可能很幼稚的小題目
+我想了很多該如何告白的方式
+但我覺得只是一般的告白 那就太不符合我了
+所以弄了這一個小遊戲
+
+不知道從什麼時候開始
+看到妳傳訊息來都會很興奮的想馬上看妳傳了些什麼
+會很期待跟妳約好要出去的日子
+會有點吃醋
+會想好好保護妳照顧妳的心情
+這時候我才發覺 我已經有點暈暈的了
+
+我好喜歡妳漂亮的大眼睛
+我好喜歡妳每次出去都會畫很精緻的妝容
+我好喜歡妳能夠接住我的梗
+我好喜歡妳戳到自己笑點在路上爽朗的大笑
+我好喜歡妳願意一直跟我玩
+我好喜歡妳唱誠實地想你給我聽
+我好喜歡妳在我開車的時候纏著我的手
+我好喜歡妳
+
+我可能不是最帥的對象
+但我會努力朝對妳最好 最疼妳 最最最喜歡妳的對象來前進
+不知道安安願不願意給我一個機會
+讓我加入妳未來的生活
+做妳的男朋友？`;
+
+
+        // --- 3. 遊戲核心邏輯控制 ---
+        let currentIdx = 0;
+
+        function switchScene(sceneId) {
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+            document.getElementById(sceneId).classList.add('active');
+            if(sceneId === 'scene-game') {
+                loadQuestion();
+            }
+        }
+
+        function loadQuestion() {
+            if (currentIdx >= quizData.length) {
+                // 答完五題，隱藏題目與選項，秀出讀取書信按鈕
+				document.getElementById('progress-bar').style.display = 'none';
+                document.getElementById('question-text').style.display = 'none';
+                document.getElementById('options-container').style.display = 'none';
+                const readBtn = document.getElementById('btn-read-letter');
+                readBtn.style.display = 'block';
+                return;
+            }
+
+            // 更新進度條
+            const progressPercent = ((currentIdx + 1) / quizData.length) * 100;
+            document.getElementById('progress').style.width = `${progressPercent}%`;
+
+            const currentQuiz = quizData[currentIdx];
+            document.getElementById('question-text').innerText = currentQuiz.q;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            currentQuiz.options.forEach((opt, index) => {
+                const button = document.createElement('button');
+                button.className = 'opt-btn';
+                button.innerText = opt;
+                button.onclick = () => checkAnswer(index, button);
+                container.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedIdx, clickedBtn) {
+            const currentQuiz = quizData[currentIdx];
+            const allButtons = document.querySelectorAll('.opt-btn');
+
+            if (selectedIdx === currentQuiz.correct) {
+                // 答對了
+                allButtons.forEach(b => b.classList.add('disabled'));
+                clickedBtn.classList.add('correct');
+                
+                // 延遲 3 秒切換至下一題
+                setTimeout(() => {
+                    currentIdx++;
+                    loadQuestion();
+                }, 1000);
+            } else {
+                // 答錯了：按鈕變紅，允許繼續作答
+                clickedBtn.classList.add('wrong');
+                // 動畫結束後移除 shake 效果類別以利重複觸發
+                setTimeout(() => clickedBtn.classList.remove('wrong'), 400);
+            }
+        }
+
+        function goLetterScene() {
+            switchScene('scene-letter');
+        }
+
+        function openLetter() {
+            const env = document.getElementById('envelope');
+            if(!env.classList.contains('open')) {
+                env.classList.add('open');
+                // 注入告白文字
+                document.getElementById('letter-text').innerText = loveLetterContent;
+            }
+        }
+
+        // --- 4. 背景奇幻粒子特效 (Canvas) ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.2 - 0.1;
+                this.speedY = Math.random() * -0.3 - 0.1; // 緩緩往上飄
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.y < 0) {
+                    this.y = canvas.height;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = '#d4af37';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 60; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+    </script>
+</body>
+</html>
