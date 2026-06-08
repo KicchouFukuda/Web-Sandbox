@@ -1,511 +1,292 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>命運的試煉</title>
-    <style>
-        /* --- 基礎奇幻風格樣式 --- */
-        :root {
-            --bg-dark: #0d1117;
-            --gold-primary: #d4af37;
-            --gold-light: #f3e5ab;
-            --error-red: #e74c3c;
-            --success-green: #2ecc71;
-            --text-light: #eceff1;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        /* 奇幻星空背景粒子 */
-        #bg-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .scene {
-            position: absolute;
-            width: 90%;
-            max-width: 450px;
-            padding: 30px 20px;
-            border-radius: 20px;
-            background: rgba(20, 25, 35, 0.85);
-            border: 2px solid var(--gold-primary);
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
-            backdrop-filter: blur(10px);
-            text-align: center;
-            z-index: 10;
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.9);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        .scene.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: scale(1);
-        }
-
-        /* 通用奇幻按鈕 */
-        .btn {
-            background: linear-gradient(135deg, #1f2535 0%, #0d1117 100%);
-            border: 1px solid var(--gold-primary);
-            color: var(--gold-light);
-            padding: 15px 30px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(212, 175, 55, 0.2);
-            transition: all 0.3s ease;
-            outline: none;
-            width: 100%;
-            margin-top: 20px;
-            letter-spacing: 2px;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        /* --- 首頁樣式 --- */
-        .home-title {
-            font-size: 2.2rem;
-            color: var(--gold-primary);
-            margin-bottom: 15px;
-            text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
-            letter-spacing: 4px;
-        }
-
-        .home-subtitle {
-            font-size: 0.95rem;
-            color: #8a99ad;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        /* --- 遊戲頁樣式 --- */
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #1f2535;
-            border-radius: 3px;
-            margin-bottom: 25px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 20%;
-            background: linear-gradient(90deg, var(--gold-primary), var(--gold-light));
-            transition: width 0.5s ease;
-        }
-
-        .question-text {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            min-height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1.5;
-            color: #ffffff;
-        }
-
-        .options-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .opt-btn {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            color: var(--text-light);
-            padding: 16px;
-            font-size: 1rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            width: 100%;
-        }
-
-        /* 狀態色彩控制 */
-        .opt-btn.wrong {
-            background-color: var(--error-red) !important;
-            border-color: var(--error-red) !important;
-            color: white;
-            animation: shake 0.4s ease;
-        }
-
-        .opt-btn.correct {
-            background-color: var(--success-green) !important;
-            border-color: var(--success-green) !important;
-            color: white;
-            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
-        }
-
-        .opt-btn.disabled {
-            pointer-events: none;
-            opacity: 0.6;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
-
-        /* --- 信件場景與 3D 翻轉動畫 --- */
-        .letter-scene {
-            perspective: 1000px;
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            backdrop-filter: none !important;
-        }
-
-        .envelope {
-            position: relative;
-            width: 300px;
-            height: 200px;
-            background: #cc9966;
-            margin: 0 auto;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            cursor: pointer;
-            transform-style: preserve-3d;
-            transition: transform 0.8s ease;
-        }
-
-        /* 信封上蓋 */
-        .envelope-flap {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            border-left: 150px solid transparent;
-            border-right: 150px solid transparent;
-            border-top: 100px solid #b3804d;
-            transform-origin: top;
-            transition: transform 0.5s ease 0.2s;
-            z-index: 3;
-        }
-
-        /* 信封正面下方口袋效果 */
-        .envelope-pocket {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #d9a673 0%, #b3804d 100%);
-            clip-path: polygon(0 0, 150px 100px, 300px 0, 300px 200px, 0 200px);
-            z-index: 2;
-        }
-
-        /* 內藏的信紙 */
-        .letter-paper {
-            position: absolute;
-            bottom: 5px;
-            left: 15px;
-            width: 270px;
-            height: 180px;
-            background: #fffdf0;
-            padding: 20px;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.7s, width 0.6s ease 1.5s, height 0.6s ease 1.5s, left 0.6s ease 1.5s, bottom 0.6s ease 1.5s;
-            overflow: hidden;
-        }
-
-        /* 信件展開動畫觸發狀態 */
-        .envelope.open .envelope-flap {
-            transform: rotateX(180deg);
-            z-index: 0;
-        }
-
-        .envelope.open .letter-paper {
-            transform: translateY(-120px);
-            z-index: 4;
-            width: 320px;
-            height: 460px;
-            left: -10px;
-            bottom: -130px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-        }
-
-        /* 信件文字內容 */
-        .letter-content {
-            color: #2c3e50;
-            text-align: left;
-            line-height: 1.8;
-            font-size: 1.05rem;
-            opacity: 0;
-            transition: opacity 0.5s ease 2.1s;
-            height: 100%;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            padding-right: 5px;
-        }
-
-        .envelope.open .letter-content {
-            opacity: 1;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🧸 我的雲端食譜</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
+      touch-action: manipulation;
+    }
+    .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 7rem); }
+  </style>
 </head>
-<body>
+<body class="bg-[#FDFBF7] text-[#5C4D3C] min-h-screen flex flex-col selection:bg-orange-200">
 
-    <!-- 星空背景 -->
-    <canvas id="bg-canvas"></canvas>
+  <header class="bg-[#FFEDD5] border-b-4 border-[#E2C2A4] sticky top-0 z-40 shadow-sm">
+    <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold tracking-wider text-[#7C5936] flex items-center gap-1.5">
+        <span>👨‍🍳</span> 我的食譜
+      </h1>
+      <span class="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-md border border-amber-400">Demo 模式</span>
+    </div>
+  </header>
 
-    <!-- 1. 首頁場景 -->
-    <div id="scene-home" class="scene active">
-        <h1 class="home-title">命運的試煉</h1>
-        <p class="home-subtitle">歡迎來到這場探索之旅。<br>前方有五道題目<br>唯有真心與回憶交織<br>才能開啟最終隱藏的奧秘。</p>
-        <button class="btn" onclick="switchScene('scene-game')">開始遊戲</button>
+  <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom">
+    
+    <div id="loading" class="hidden fixed inset-0 bg-amber-900/20 z-50 flex items-center justify-center">
+      <div class="bg-white px-6 py-5 rounded-3xl border-4 border-[#E2C2A4] flex flex-col items-center gap-2 shadow-lg">
+        <span class="animate-bounce text-3xl">🍳</span>
+        <span class="font-bold text-sm text-[#7C5936]">正在加入愛心調味料...</span>
+      </div>
     </div>
 
-    <!-- 2. 遊戲頁場景 -->
-    <div id="scene-game" class="scene">
-        <div id="progress-bar" class="progress-bar"><div id="progress" class="progress-fill"></div></div>
-        <div id="question-text" class="question-text">載入中...</div>
-        <div id="options-container" class="options-container"></div>
-        <!-- 讀取書信按鈕，一開始先隱藏 -->
-        <button id="btn-read-letter" class="btn" style="display: none;" onclick="goLetterScene()">讀取書信</button>
-    </div>
-
-    <!-- 3. 信件動畫場景 -->
-    <div id="scene-letter" class="scene letter-scene">
-        <div id="envelope" class="envelope" onclick="openLetter()">
-            <div class="envelope-flap"></div>
-            <div class="envelope-pocket"></div>
-            <div class="letter-paper">
-                <div id="letter-text" class="letter-content"></div>
-            </div>
+    <section id="viewTab" class="space-y-4">
+      <div class="relative">
+        <input type="text" id="searchBar" placeholder="🔍 搜尋食譜或材料..." 
+          class="w-full border-3 border-[#E2C2A4] rounded-2xl px-4 py-2.5 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#F0A98F] placeholder:text-gray-400 font-medium">
+      </div>
+      
+      <div id="recipeList" class="space-y-4">
         </div>
+    </section>
+
+    <section id="formTab" class="hidden bg-white p-5 rounded-3xl border-4 border-[#E2C2A4] shadow-sm space-y-4">
+      <h2 id="formTitle" class="text-base font-bold text-[#7C5936] bg-[#FFEDD5] -mx-5 -mt-5 p-4 rounded-t-[20px] border-b-4 border-[#E2C2A4] flex items-center gap-1">
+        ✨ 新增健康食譜
+      </h2>
+      <form id="recipeForm" class="space-y-4 text-sm font-bold">
+        <input type="hidden" id="recipeId">
+        
+        <div>
+          <label class="block text-xs text-[#8C7662] mb-1">🍎 食譜名稱 *</label>
+          <input type="text" id="recipeName" required class="w-full border-2 border-[#E2C2A4] rounded-xl p-2.5 focus:outline-none focus:border-[#F0A98F]" placeholder="例：草莓雲朵厚鬆餅">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-[#FFF7ED] p-2 rounded-xl border border-orange-100">
+            <label class="block text-xs text-orange-700 mb-1">🔥 熱量 (kcal)</label>
+            <input type="number" id="calories" inputmode="numeric" class="w-full bg-white border-2 border-[#E2C2A4] rounded-lg p-1.5 text-center" placeholder="0">
+          </div>
+          <div class="bg-[#FEFCE8] p-2 rounded-xl border border-yellow-100">
+            <label class="block text-xs text-yellow-700 mb-1">🍞 碳水 (g)</label>
+            <input type="number" id="carbs" step="0.1" inputmode="decimal" class="w-full bg-white border-2 border-[#E2C2A4] rounded-lg p-1.5 text-center" placeholder="0">
+          </div>
+          <div class="bg-[#EEF2FF] p-2 rounded-xl border border-indigo-100">
+            <label class="block text-xs text-indigo-700 mb-1">🥩 蛋白質 (g)</label>
+            <input type="number" id="protein" step="0.1" inputmode="decimal" class="w-full bg-white border-2 border-[#E2C2A4] rounded-lg p-1.5 text-center" placeholder="0">
+          </div>
+          <div class="bg-[#F0FDF4] p-2 rounded-xl border border-green-100">
+            <label class="block text-xs text-green-700 mb-1">🥑 脂肪 (g)</label>
+            <input type="number" id="fat" step="0.1" inputmode="decimal" class="w-full bg-white border-2 border-[#E2C2A4] rounded-lg p-1.5 text-center" placeholder="0">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-[#8C7662] mb-1">🛒 材料準備</label>
+          <textarea id="ingredients" rows="3" class="w-full border-2 border-[#E2C2A4] rounded-xl p-2.5 focus:outline-none" placeholder="每行輸入一項材料呀..."></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs text-[#8C7662] mb-1">🍳 料理步驟</label>
+          <textarea id="steps" rows="4" class="w-full border-2 border-[#E2C2A4] rounded-xl p-2.5 focus:outline-none" placeholder="1. 把愛心放進去...&#10;2. 攪拌均勻..."></textarea>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="cancelBtn" class="flex-1 bg-gray-100 text-gray-500 py-3 rounded-2xl border-2 border-gray-300 shadow-[0_3px_0_#D1D5DB] active:translate-y-0.5 active:shadow-none">取消</button>
+          <button type="submit" class="flex-1 bg-[#F0A98F] text-white py-3 rounded-2xl border-2 border-[#D98366] shadow-[0_3px_0_#D98366] active:translate-y-0.5 active:shadow-none">🌟 儲存食譜</button>
+        </div>
+      </form>
+    </section>
+
+  </main>
+
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-[#E2C2A4] z-30">
+    <div class="max-w-md mx-auto">
+      
+      <div id="summaryPanel" class="bg-[#FFFBEB] px-4 py-3 border-b-2 border-dashed border-[#E2C2A4]">
+        <div class="text-xs font-bold text-[#7C5936] mb-1.5 flex items-center gap-1">✨ 今日菜單總計：</div>
+        <div class="grid grid-cols-4 text-center text-xs font-bold gap-1 bg-white p-2 rounded-xl border-2 border-[#E2C2A4]">
+          <div class="text-orange-600">🔥 <span id="totalCal" class="block text-sm">0</span><span class="text-[10px] text-gray-400">kcal</span></div>
+          <div class="text-yellow-600">🍞 <span id="totalCarbs" class="block text-sm">0</span><span class="text-[10px] text-gray-400">碳水(g)</span></div>
+          <div class="text-indigo-600">🥩 <span id="totalProtein" class="block text-sm">0</span><span class="text-[10px] text-gray-400">蛋白(g)</span></div>
+          <div class="text-green-600">🥑 <span id="totalFat" class="block text-sm">0</span><span class="text-[10px] text-gray-400">脂肪(g)</span></div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-2 h-16 text-sm font-bold">
+        <button id="navView" class="flex flex-col items-center justify-center text-[#7C5936] bg-[#FFEDD5]">
+          <span class="text-xl">📖</span>
+          <span class="text-xs mt-0.5">菜單瀏覽</span>
+        </button>
+        <button id="navAdd" class="flex flex-col items-center justify-center text-gray-400 hover:text-[#7C5936] transition-colors">
+          <span class="text-xl">🍳</span>
+          <span class="text-xs mt-0.5">新增食譜</span>
+        </button>
+      </div>
     </div>
+  </footer>
 
-    <script>
-        // --- 1. 題目與答案資料庫（你可以在這裡修改題目內容） ---
-        const quizData = [
-            {
-                q: "第一次單獨出去吃飯時，去了哪一間店？",
-                options: ["有沐咖啡", "池子咖啡", "食光機"],
-                correct: 1 // 對應選項的 index
-            },
-            {
-                q: "開始聊天的第一句訊息，我傳了什麼？",
-                options: ["哈囉", "貼圖", "新年快樂"],
-                correct: 2
-            },
-            {
-                q: "我最喜歡叫妳什麼？",
-                options: ["安安", "D.O.G", "小安"],
-                correct: 0
-            },
-            {
-                q: "是在哪一個瞬間，我確定自己對你心動了？",
-                options: ["第一次出去吃飯", "聊到凌晨三點那天", "其實每一次見面，我都重新心動了一次"],
-                correct: 2
-            },
-            {
-                q: "最後一道題目就是，我們的交往紀念日是幾號？",
-                options: ["5/22", "8/5", "8/20"],
-                correct: 0 // 這題無論選哪一個，在程式邏輯裡我都會設定為答對，不影響體驗
-            }
-        ];
+  <script>
+    // 🍓 內建的 Demo 模擬數據
+    let ALL_RECIPES = [
+      {
+        ID: "demo_1",
+        食譜名稱: "🍓 草莓雲朵厚鬆餅",
+        熱量: 320,
+        碳水: 45,
+        蛋白質: 12,
+        脂肪: 10,
+        材料: "低筋麵粉 100g\n雞蛋 2顆\n鮮牛奶 60ml\n新鮮草莓 5顆\n蜂蜜 適量",
+        做法: "1. 將蛋黃與蛋白分離，蛋白打發至乾性發泡。\n2. 蛋黃與牛奶、麵粉攪拌均勻後，輕輕拌入打發蛋白。\n3. 平底鍋小火微熱，慢煎至兩面金黃蓬鬆。\n4. 擺上草莓，淋上蜂蜜就完成啦！"
+      },
+      {
+        ID: "demo_2",
+        食譜名稱: "🥑 繽紛酪梨蝦仁沙拉",
+        熱量: 260,
+        碳水: 12,
+        蛋白質: 18,
+        脂肪: 16,
+        材料: "熟酪梨 半顆\n鮮蝦仁 8隻\n小番茄 6顆\n生菜葉 隨意\n橄欖油油醋汁 1湯匙",
+        做法: "1. 蝦仁燙熟放涼備用。\n2. 酪梨切丁，小番茄對半切開。\n3. 將所有食材鋪在生菜上。\n4. 均勻淋上油醋汁，輕輕翻拌即可享用。"
+      },
+      {
+        ID: "demo_3",
+        食譜名稱: "🍗 日式蜂蜜照燒雞胸肉",
+        熱量: 380,
+        碳水: 15,
+        蛋白質: 35,
+        脂肪: 8,
+        材料: "優質雞胸肉 200g\n醬油 2湯匙\n蜂蜜 1湯匙\n味醂 1湯匙\n白芝麻 少許",
+        做法: "1. 雞胸肉切厚片，用少許鹽巴稍微抓醃。\n2. 調製照燒醬：將醬油、蜂蜜、味醂與少許水攪拌均勻。\n3. 熱鍋下少許油，將雞胸肉兩面煎至微焦。\n4. 倒入照燒醬汁小火收汁，起鍋前撒上白芝麻。"
+      }
+    ]; 
 
-        // --- 2. 你的告白信件內容（可在這裡自由修改） ---
-        const loveLetterContent = `安安：
-謝謝妳回答完這五個可能很幼稚的小題目
-我想了很多該如何告白的方式
-但我覺得只是一般的告白 那就太不符合我了
-所以弄了這一個小遊戲
+    let SELECTED_IDS = new Set(); // 記錄當前選取的食譜 ID
 
-不知道從什麼時候開始
-看到妳傳訊息來都會很興奮的想馬上看妳傳了些什麼
-會很期待跟妳約好要出去的日子
-會有點吃醋
-會想好好保護妳照顧妳的心情
-這時候我才發覺 我已經有點暈暈的了
+    const dom = {
+      loading: document.getElementById('loading'),
+      viewTab: document.getElementById('viewTab'),
+      formTab: document.getElementById('formTab'),
+      recipeList: document.getElementById('recipeList'),
+      searchBar: document.getElementById('searchBar'),
+      recipeForm: document.getElementById('recipeForm'),
+      formTitle: document.getElementById('formTitle'),
+      recipeId: document.getElementById('recipeId'),
+      navView: document.getElementById('navView'),
+      navAdd: document.getElementById('navAdd'),
+      cancelBtn: document.getElementById('cancelBtn'),
+      totalCal: document.getElementById('totalCal'),
+      totalCarbs: document.getElementById('totalCarbs'),
+      totalProtein: document.getElementById('totalProtein'),
+      totalFat: document.getElementById('totalFat')
+    };
 
-我好喜歡妳漂亮的大眼睛
-我好喜歡妳每次出去都會畫很精緻的妝容
-我好喜歡妳能夠接住我的梗
-我好喜歡妳戳到自己笑點在路上爽朗的大笑
-我好喜歡妳願意一直跟我玩
-我好喜歡妳唱誠實地想你給我聽
-我好喜歡妳在我開車的時候纏著我的手
-我好喜歡妳
+    // 初始化網頁
+    window.addEventListener('DOMContentLoaded', () => {
+      renderRecipes(ALL_RECIPES);
+      calculateSummary();
+    });
 
-我可能不是最帥的對象
-但我會努力朝對妳最好 最疼妳 最最最喜歡妳的對象來前進
-不知道安安願不願意給我一個機會
-讓我加入妳未來的生活
-做妳的男朋友？`;
+    // 渲染食譜卡片
+    function renderRecipes(recipes) {
+      dom.recipeList.innerHTML = "";
+      if (recipes.length === 0) {
+        dom.recipeList.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm font-bold">裡面空空如也，找不到這道料理呢 🍓</div>`;
+        return;
+      }
 
-
-        // --- 3. 遊戲核心邏輯控制 ---
-        let currentIdx = 0;
-
-        function switchScene(sceneId) {
-            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
-            document.getElementById(sceneId).classList.add('active');
-            if(sceneId === 'scene-game') {
-                loadQuestion();
-            }
-        }
-
-        function loadQuestion() {
-            if (currentIdx >= quizData.length) {
-                // 答完五題，隱藏題目與選項，秀出讀取書信按鈕
-				document.getElementById('progress-bar').style.display = 'none';
-                document.getElementById('question-text').style.display = 'none';
-                document.getElementById('options-container').style.display = 'none';
-                const readBtn = document.getElementById('btn-read-letter');
-                readBtn.style.display = 'block';
-                return;
-            }
-
-            // 更新進度條
-            const progressPercent = ((currentIdx + 1) / quizData.length) * 100;
-            document.getElementById('progress').style.width = `${progressPercent}%`;
-
-            const currentQuiz = quizData[currentIdx];
-            document.getElementById('question-text').innerText = currentQuiz.q;
+      recipes.forEach(item => {
+        const isChecked = SELECTED_IDS.has(item.ID.toString()) ? 'checked' : '';
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-3xl border-3 border-[#E2C2A4] shadow-[0_4px_0_#E2C2A4] flex gap-3 items-start transition active:translate-y-0.5 active:shadow-none";
+        card.innerHTML = `
+          <div class="pt-1">
+            <input type="checkbox" data-id="${item.ID}" ${isChecked} class="recipe-checkbox w-5 h-5 rounded-md border-2 border-[#E2C2A4] text-[#F0A98F] focus:ring-[#F0A98F]">
+          </div>
+          <div class="flex-1" onclick="toggleDetails('${item.ID}')">
+            <div class="flex justify-between items-start">
+              <h3 class="font-bold text-[#5C4D3C] text-base">${item.食譜名稱}</h3>
+              <button onclick="event.stopPropagation(); dataEdit('${item.ID}')" class="text-xs text-[#7C5936] font-bold px-2.5 py-1 bg-[#FFEDD5] border border-[#E2C2A4] rounded-xl shadow-[0_1.5px_0_#E2C2A4] active:translate-y-0.5 active:shadow-none">編輯</button>
+            </div>
             
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
+            <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#8C7662] mt-2 font-bold">
+              <span class="bg-orange-50 px-1.5 py-0.5 rounded-md">🔥 ${item.熱量} kcal</span>
+              <span class="bg-yellow-50 px-1.5 py-0.5 rounded-md">🍞 碳水 ${item.碳水}g</span>
+              <span class="bg-indigo-50 px-1.5 py-0.5 rounded-md">🥩 蛋 ${item.蛋白質}g</span>
+              <span class="bg-green-50 px-1.5 py-0.5 rounded-md">🥑 脂 ${item.脂肪}g</span>
+            </div>
+            
+            <div id="detail-${item.ID}" class="hidden mt-3 pt-3 border-t-2 border-dashed border-[#E2C2A4] text-xs space-y-2 text-[#5C4D3C]">
+              <div><strong class="text-[#7C5936] block mb-0.5">🛒 材料：</strong><p class="whitespace-pre-line bg-[#FFFBF7] p-2.5 border border-[#E2C2A4] rounded-xl">${item.材料 || '沒寫材料呢'}</p></div>
+              <div><strong class="text-[#7C5936] block mb-0.5">🍳 做法：</strong><p class="whitespace-pre-line bg-[#FFFBF7] p-2.5 border border-[#E2C2A4] rounded-xl">${item.做法 || '沒寫做法呢'}</p></div>
+            </div>
+          </div>
+        `;
+        dom.recipeList.appendChild(card);
+      });
 
-            currentQuiz.options.forEach((opt, index) => {
-                const button = document.createElement('button');
-                button.className = 'opt-btn';
-                button.innerText = opt;
-                button.onclick = () => checkAnswer(index, button);
-                container.appendChild(button);
-            });
+      // 監聽勾選盒子的狀態改變
+      document.querySelectorAll('.recipe-checkbox').forEach(box => {
+        box.addEventListener('change', (e) => {
+          const id = e.target.getAttribute('data-id').toString();
+          if (e.target.checked) {
+            SELECTED_IDS.add(id);
+          } else {
+            SELECTED_IDS.delete(id);
+          }
+          calculateSummary();
+        });
+      });
+    }
+
+    function toggleDetails(id) {
+      const detailDiv = document.getElementById(`detail-${id}`);
+      if(detailDiv) detailDiv.classList.toggle('hidden');
+    }
+
+    // 計算總和（直接跑陣列）
+    function calculateSummary() {
+      let totalCal = 0, totalCarbs = 0, totalProtein = 0, totalFat = 0;
+      
+      ALL_RECIPES.forEach(item => {
+        if (SELECTED_IDS.has(item.ID.toString())) {
+          totalCal += Number(item.熱量) || 0;
+          totalCarbs += Number(item.碳水) || 0;
+          totalProtein += Number(item.蛋白質) || 0;
+          totalFat += Number(item.脂肪) || 0;
         }
+      });
 
-        function checkAnswer(selectedIdx, clickedBtn) {
-            const currentQuiz = quizData[currentIdx];
-            const allButtons = document.querySelectorAll('.opt-btn');
+      dom.totalCal.innerText = totalCal;
+      dom.totalCarbs.innerText = totalCarbs.toFixed(1);
+      dom.totalProtein.innerText = totalProtein.toFixed(1);
+      dom.totalFat.innerText = totalFat.toFixed(1);
+    }
 
-            if (selectedIdx === currentQuiz.correct) {
-                // 答對了
-                allButtons.forEach(b => b.classList.add('disabled'));
-                clickedBtn.classList.add('correct');
-                
-                // 延遲 3 秒切換至下一題
-                setTimeout(() => {
-                    currentIdx++;
-                    loadQuestion();
-                }, 1000);
-            } else {
-                // 答錯了：按鈕變紅，允許繼續作答
-                clickedBtn.classList.add('wrong');
-                // 動畫結束後移除 shake 效果類別以利重複觸發
-                setTimeout(() => clickedBtn.classList.remove('wrong'), 400);
-            }
-        }
+    // 本地搜尋過濾
+    dom.searchBar.addEventListener('input', (e) => {
+      const keyword = e.target.value.toLowerCase();
+      const filtered = ALL_RECIPES.filter(item => 
+        item.食譜名稱.toLowerCase().includes(keyword) || 
+        item.材料.toLowerCase().includes(keyword)
+      );
+      renderRecipes(filtered);
+    });
 
-        function goLetterScene() {
-            switchScene('scene-letter');
-        }
+    // 表單提交（在記憶體中新增與修改，網頁重新整理後會恢復原狀）
+    dom.recipeForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      showLoading(true);
 
-        function openLetter() {
-            const env = document.getElementById('envelope');
-            if(!env.classList.contains('open')) {
-                env.classList.add('open');
-                // 注入告白文字
-                document.getElementById('letter-text').innerText = loveLetterContent;
-            }
-        }
+      // 用定時器模擬一小段載入感，更真實可愛
+      setTimeout(() => {
+        const id = dom.recipeId.value;
+        const recipeData = {
+          ID: id || "local_" + new Date().getTime(),
+          食譜名稱: document.getElementById('recipeName').value,
+          熱量: Number(document.getElementById('calories').value) || 0,
+          碳水: Number(document.getElementById('carbs').value) || 0,
+          蛋白質: Number(document.getElementById('protein').value) || 0,
+          脂肪: Number(document.getElementById('fat').value) || 0,
+          材料: document.getElementById('ingredients').value,
+          做法: document.getElementById('steps').value
+        };
 
-        // --- 4. 背景奇幻粒子特效 (Canvas) ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = Math.random() * 0.2 - 0.1;
-                this.speedY = Math.random() * -0.3 - 0.1; // 緩緩往上飄
-                this.alpha = Math.random() * 0.5 + 0.2;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                if (this.y < 0) {
-                    this.y = canvas.height;
-                    this.x = Math.random() * canvas.width;
-                }
-            }
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.fillStyle = '#d4af37';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        function initParticles() {
-            for (let i = 0; i < 60; i++) {
-                particles.push(new Particle());
-            }
-        }
-
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animateParticles);
-        }
-
-        initParticles();
-        animateParticles();
-    </script>
-</body>
-</html>
+        if
