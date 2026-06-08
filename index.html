@@ -124,6 +124,7 @@
   </footer>
 
   <script>
+	console.log("👉 檢查點：JavaScript 核心成功啟動！", new Date().getTime());
     // 🍓 內建的 Demo 模擬數據
     let ALL_RECIPES = [
       {
@@ -186,6 +187,7 @@
 
     // 渲染食譜卡片
     function renderRecipes(recipes) {
+		console.log("renderRecipes", new Date().getTime());
       dom.recipeList.innerHTML = "";
       if (recipes.length === 0) {
         dom.recipeList.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm font-bold">裡面空空如也，找不到這道料理呢 🍓</div>`;
