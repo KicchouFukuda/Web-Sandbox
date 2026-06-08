@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>🧸 我的雲端食譜 (Demo)</title>
+  <title>🧸 我的雲端食譜</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght=500;700&display=swap" rel="stylesheet">
   
   <style>
     body {
@@ -25,9 +25,8 @@
   <header class="bg-[#FFEDD5] border-b-4 border-[#E2C2A4] sticky top-0 z-40 shadow-sm">
     <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
       <h1 class="text-xl font-bold tracking-wider text-[#7C5936] flex items-center gap-1.5">
-        <span>👨‍🍳</span> 我的食譜記錄本
+        <span>👨‍🍳</span> 我的食譜記錄簿
       </h1>
-      <span class="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-md border border-amber-400">本地存儲版</span>
     </div>
   </header>
 
@@ -36,7 +35,7 @@
     <div id="loading" class="hidden fixed inset-0 bg-amber-900/20 z-50 flex items-center justify-center">
       <div class="bg-white px-6 py-5 rounded-3xl border-4 border-[#E2C2A4] flex flex-col items-center gap-2 shadow-lg">
         <span class="animate-bounce text-3xl">🍳</span>
-        <span class="font-bold text-sm text-[#7C5936]">正在加入愛心調味料...</span>
+        <span class="font-bold text-sm text-[#7C5936]" id="loadingText">正在加入愛心調味料...</span>
       </div>
     </div>
 
@@ -191,7 +190,7 @@
       <div id="summaryPanel" class="bg-[#FFFBEB] px-4 py-3 border-b-2 border-dashed border-[#E2C2A4]">
         <div class="text-xs font-bold text-[#7C5936] mb-1.5 flex justify-between items-center">
           <span id="summaryTitle">✨ 菜單勾選總計：</span>
-          <button id="importBtn" class="hidden bg-[#F0A98F] text-white border border-[#D98366] px-2 py-0.5 rounded-lg text-[11px] animate-pulse">📥 匯入至每日記錄</button>
+          <button id="importBtn" class="hidden bg-[#F0A98F] text-white border border-[#D98366] px-2 py-0.5 rounded-lg text-[11px] animate-pulse">📥 匯入至今日記錄</button>
         </div>
         <div class="grid grid-cols-4 text-center text-xs font-bold gap-1 bg-white p-2 rounded-xl border-2 border-[#E2C2A4]">
           <div class="text-orange-600">🔥 <span id="totalCal" class="block text-sm">0</span><span class="text-[10px] text-gray-400">kcal</span></div>
@@ -219,26 +218,15 @@
   </footer>
 
   <script>
-    // 🍓 預設的 Demo 食譜數據
-    const DEFAULT_RECIPES = [
-      { ID: "demo_1", 食譜名稱: "🍓 草莓雲朵厚鬆餅", 熱量: 320, 碳水: 45, 蛋白質: 12, 脂肪: 10, 材料: "低筋麵粉 100g\n雞蛋 2顆", 做法: "1. 打發蛋白..." },
-      { ID: "demo_2", 食譜名稱: "🥑 繽紛酪梨蝦仁沙拉", 熱量: 260, 碳水: 12, 蛋白質: 18, 脂肪: 16, 材料: "熟酪梨 半顆\n鮮蝦仁 8隻", 做法: "1. 蝦仁燙熟..." },
-      { ID: "demo_3", 食譜名稱: "🍗 日式蜂蜜照燒雞胸肉", 熱量: 380, 碳水: 15, 蛋白質: 35, 脂肪: 8, 材料: "優質雞胸肉 200g", 做法: "1. 雞胸肉切厚片..." }
-    ]; 
+    // ⚠️ 核心設定：請將下方的網址替換為你部署獲得的 Google 網頁應用程式 URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbwGqMfmZVkzJtaiMmgranqKItA7etpB-vcdMYlcZ9AdQQcj3tdMEmUgmFSNN1FjgV0r/exec";
 
-    // 從 LocalStorage 載入食譜，若沒有則用預設值
-    let ALL_RECIPES = JSON.parse(localStorage.getItem('ALL_RECIPES'));
-    if (!ALL_RECIPES) {
-      ALL_RECIPES = DEFAULT_RECIPES;
-      localStorage.setItem('ALL_RECIPES', JSON.stringify(ALL_RECIPES));
-    }
+    let ALL_RECIPES = []; // 雲端食譜資料暫存區
+    let CURRENT_DAILY_LOGS = { breakfast: [], lunch: [], dinner: [], other: [] }; // 當前選定日期的雲端飲食紀錄
 
-    // 從 LocalStorage 載入大飲食日誌字典。格式： { "2026-06-08": { breakfast: [], lunch: [], ... } }
-    let MASTER_LOGS = JSON.parse(localStorage.getItem('MASTER_LOGS')) || {};
-
-    let SELECTED_IDS = new Set(); // 記錄當前菜單勾選的 ID
-    let CURRENT_TAB = 'view';     // view, record, form
-    let TARGET_DATE = "";         // 當前選定的記錄日期 (YYYY-MM-DD)
+    let SELECTED_IDS = new Set(); 
+    let CURRENT_TAB = 'view';     
+    let TARGET_DATE = "";         
 
     const dom = {
       viewTab: document.getElementById('viewTab'),
@@ -260,45 +248,85 @@
       totalProtein: document.getElementById('totalProtein'),
       totalFat: document.getElementById('totalFat'),
       loading: document.getElementById('loading'),
+      loadingText: document.getElementById('loadingText'),
       logDate: document.getElementById('logDate')
     };
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       // 預設日期為「今天」
       const today = new Date().toISOString().split('T')[0];
       dom.logDate.value = today;
       TARGET_DATE = today;
 
-      renderRecipes(ALL_RECIPES);
-      updateUI();
+      // 首次進入：同步下載食譜大盤資料
+      await fetchCloudRecipes();
 
       // 監聽日期更換
-      dom.logDate.addEventListener('change', (e) => {
+      dom.logDate.addEventListener('change', async (e) => {
         TARGET_DATE = e.target.value;
-        renderDailyLogs();
-        updateUI();
+        await fetchCloudDailyLogs();
       });
     });
 
-    // 取得當天特定日期的資料結構，如果沒有就初始化空的
-    function getDayLog(dateStr) {
-      if (!MASTER_LOGS[dateStr]) {
-        MASTER_LOGS[dateStr] = { breakfast: [], lunch: [], dinner: [], other: [] };
+    // ─── 📡 雲端 API 對接模組 ───
+
+    // 從 Google Sheets 獲取所有食譜
+    async function fetchCloudRecipes() {
+      showLoading(true, "正在從雲端廚房搬運菜單...");
+      try {
+        const response = await fetch(`${API_URL}?action=getRecipes`);
+        const result = await response.json();
+        if (result.success) {
+          ALL_RECIPES = result.data;
+          renderRecipes(ALL_RECIPES);
+        }
+      } catch (err) {
+        alert("讀取雲端食譜失敗，請確認 GAS 網址與部署設定！");
+        console.error(err);
       }
-      return MASTER_LOGS[dateStr];
+      showLoading(false);
     }
 
-    // 存入 LocalStorage 保持永久記憶
-    function saveToStorage() {
-      localStorage.setItem('MASTER_LOGS', JSON.stringify(MASTER_LOGS));
-      localStorage.setItem('ALL_RECIPES', JSON.stringify(ALL_RECIPES));
+    // 從 Google Sheets 獲取特定日期的飲食日誌
+    async function fetchCloudDailyLogs() {
+      showLoading(true, `正在回顧 ${TARGET_DATE} 的飲食記憶...`);
+      try {
+        const response = await fetch(`${API_URL}?action=getDailyLogs&date=${TARGET_DATE}`);
+        const result = await response.json();
+        if (result.success) {
+          CURRENT_DAILY_LOGS = result.data;
+          renderDailyLogs();
+          updateUI();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      showLoading(false);
     }
 
-    // 渲染食譜卡片
+    // 發送 POST 請求封裝
+    async function postToCloud(payload, successMessage) {
+      showLoading(true, "正在將記憶上傳至雲端...");
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!result.success) alert("同步失敗: " + result.message);
+      } catch (err) {
+        alert("連線雲端失敗！");
+        console.error(err);
+      }
+      showLoading(false);
+    }
+
+    // ─── 🎨 畫面渲染模組 ───
+
     function renderRecipes(recipes) {
       dom.recipeList.innerHTML = "";
       if (recipes.length === 0) {
-        dom.recipeList.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm font-bold">找不到這道料理呢 🍓</div>`;
+        dom.recipeList.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm font-bold">目前雲端沒有食譜，快點按右下角新增吧！ 🍓</div>`;
         return;
       }
       recipes.forEach(item => {
@@ -342,43 +370,39 @@
       if(detailDiv) detailDiv.classList.toggle('hidden');
     }
 
-    // 渲染當前日期的飲食記錄清單
     function renderDailyLogs() {
-      const dayData = getDayLog(TARGET_DATE);
       const meals = ['breakfast', 'lunch', 'dinner', 'other'];
-      
       meals.forEach(type => {
         const container = document.getElementById(`list-${type}`);
         container.innerHTML = "";
-        if (dayData[type].length === 0) {
+        const logs = CURRENT_DAILY_LOGS[type] || [];
+        if (logs.length === 0) {
           container.innerHTML = `<span class="text-gray-300 italic block py-1">這天還沒有填寫記錄唷～</span>`;
           return;
         }
-        dayData[type].forEach((log, index) => {
+        logs.forEach((log) => {
           const item = document.createElement('div');
           item.className = "flex justify-between items-center bg-[#FFFBF7] p-2 border border-[#E2C2A4] rounded-xl font-bold text-[#5C4D3C] my-1";
           item.innerHTML = `
             <div>
-              <span class="text-sm">${log.name}</span>
-              <span class="text-[10px] text-gray-400 block font-normal">🔥${log.calories}kcal | 🍞${log.carbs}g | 🥩${log.protein}g | 🥑${log.fat}g</span>
+              <span class="text-sm">${log.食物名稱}</span>
+              <span class="text-[10px] text-gray-400 block font-normal">🔥${log.熱量}kcal | 🍞${log.碳水}g | 🥩${log.蛋白質}g | 🥑${log.脂肪}g</span>
             </div>
-            <button onclick="deleteLog('${type}', ${index})" class="text-red-400 text-xs px-2 py-1">❌</button>
+            <button onclick="deleteLog('${log.LogID}')" class="text-red-400 text-xs px-2 py-1">❌</button>
           `;
           container.appendChild(item);
         });
       });
     }
 
-    // 刪除某筆記錄
-    function deleteLog(type, index) {
-      const dayData = getDayLog(TARGET_DATE);
-      dayData[type].splice(index, 1);
-      saveToStorage();
-      renderDailyLogs();
-      updateUI();
+    // 刪除飲食記錄
+    async function deleteLog(logId) {
+      if(!confirm("確定要刪除這筆飲食紀錄嗎？")) return;
+      await postToCloud({ action: "deleteDailyLog", LogID: logId });
+      await fetchCloudDailyLogs();
     }
 
-    // 核心數據加總控制
+    // 核心數據加總與大看板控制
     function updateUI() {
       let totalCal = 0, totalCarbs = 0, totalProtein = 0, totalFat = 0;
 
@@ -386,13 +410,13 @@
         dom.summaryTitle.innerText = `✨ ${TARGET_DATE} 攝取總加總：`;
         dom.importBtn.classList.add('hidden');
         
-        const dayData = getDayLog(TARGET_DATE);
         ['breakfast', 'lunch', 'dinner', 'other'].forEach(type => {
-          dayData[type].forEach(log => {
-            totalCal += log.calories;
-            totalCarbs += log.carbs;
-            totalProtein += log.protein;
-            totalFat += log.fat;
+          const logs = CURRENT_DAILY_LOGS[type] || [];
+          logs.forEach(log => {
+            totalCal += Number(log.熱量) || 0;
+            totalCarbs += Number(log.碳水) || 0;
+            totalProtein += Number(log.蛋白質) || 0;
+            totalFat += Number(log.脂肪) || 0;
           });
         });
       } else {
@@ -415,34 +439,38 @@
       dom.totalFat.innerText = totalFat.toFixed(1);
     }
 
-    // 匯入功能邏輯
+    // ─── 🍱 匯入菜單控制 ───
     dom.importBtn.addEventListener('click', () => {
       document.getElementById('importMealModal').classList.remove('hidden');
     });
     function closeImportMealModal() {
       document.getElementById('importMealModal').classList.add('hidden');
     }
-    function executeImport(mealType) {
-      const dayData = getDayLog(TARGET_DATE);
+    async function executeImport(mealType) {
+      const uploadLogs = [];
       ALL_RECIPES.forEach(item => {
         if (SELECTED_IDS.has(item.ID.toString())) {
-          dayData[mealType].push({
-            name: item.食譜名稱,
-            calories: Number(item.熱量) || 0,
-            carbs: Number(item.碳水) || 0,
-            protein: Number(item.蛋白質) || 0,
-            fat: Number(item.脂肪) || 0
+          uploadLogs.push({
+            LogID: "log_" + new Date().getTime() + "_" + Math.floor(Math.random()*1000),
+            日期: TARGET_DATE,
+            餐別: mealType,
+            食物名稱: item.食譜名稱,
+            熱量: Number(item.熱量) || 0,
+            碳水: Number(item.碳水) || 0,
+            蛋白質: Number(item.蛋白質) || 0,
+            脂肪: Number(item.脂肪) || 0
           });
         }
       });
+
+      await postToCloud({ action: "addDailyLog", data: uploadLogs });
       SELECTED_IDS.clear();
-      saveToStorage();
-      renderRecipes(ALL_RECIPES);
       closeImportMealModal();
+      await fetchCloudDailyLogs();
       switchTab('record'); 
     }
 
-    // 手動填入控制
+    // ─── ➕ 手動填入飲食控制 ───
     function openManualLogModal(mealType) {
       const typeNames = { breakfast: '早餐 🍳', lunch: '午餐 🍱', dinner: '晚餐 🍲', other: '其他 🍎' };
       document.getElementById('modalLogTitle').innerText = `➕ 手動記一筆 - ${typeNames[mealType]}`;
@@ -457,58 +485,52 @@
     function closeManualLogModal() {
       document.getElementById('manualLogModal').classList.add('hidden');
     }
-    function saveManualLog() {
+    async function saveManualLog() {
       const type = document.getElementById('modalLogMealType').value;
       const name = document.getElementById('logName').value.trim() || "未命名食物";
-      const dayData = getDayLog(TARGET_DATE);
-      dayData[type].push({
-        name: name,
-        calories: Number(document.getElementById('logCal').value) || 0,
-        carbs: Number(document.getElementById('logCarbs').value) || 0,
-        protein: Number(document.getElementById('logProtein').value) || 0,
-        fat: Number(document.getElementById('logFat').value) || 0
-      });
-      saveToStorage();
-      renderDailyLogs();
-      updateUI();
+      
+      const singleLog = [{
+        LogID: "log_" + new Date().getTime(),
+        日期: TARGET_DATE,
+        餐別: type,
+        食物名稱: name,
+        熱量: Number(document.getElementById('logCal').value) || 0,
+        碳水: Number(document.getElementById('logCarbs').value) || 0,
+        蛋白質: Number(document.getElementById('logProtein').value) || 0,
+        脂肪: Number(document.getElementById('logFat').value) || 0
+      }];
+
+      await postToCloud({ action: "addDailyLog", data: singleLog });
       closeManualLogModal();
+      await fetchCloudDailyLogs();
     }
 
-    // 搜尋過濾
+    // 關鍵搜尋
     dom.searchBar.addEventListener('input', (e) => {
       const keyword = e.target.value.toLowerCase();
-      const filtered = ALL_RECIPES.filter(item => item.食譜名稱.toLowerCase().includes(keyword) || item.材料.toLowerCase().includes(keyword));
+      const filtered = ALL_RECIPES.filter(item => item.食譜名稱.toLowerCase().includes(keyword) || (item.材料 && item.材料.toLowerCase().includes(keyword)));
       renderRecipes(filtered);
     });
 
-    // 儲存/新增食譜
-    dom.recipeForm.addEventListener('submit', (e) => {
+    // 提交食譜表單（新增/修改）
+    dom.recipeForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      showLoading(true);
-      setTimeout(() => {
-        const id = dom.recipeId.value;
-        const recipeData = {
-          ID: id || "local_" + new Date().getTime(),
-          食譜名稱: document.getElementById('recipeName').value,
-          熱量: Number(document.getElementById('calories').value) || 0,
-          碳水: Number(document.getElementById('carbs').value) || 0,
-          蛋白質: Number(document.getElementById('protein').value) || 0,
-          脂肪: Number(document.getElementById('fat').value) || 0,
-          材料: document.getElementById('ingredients').value,
-          做法: document.getElementById('steps').value
-        };
-        if (id) {
-          const idx = ALL_RECIPES.findIndex(r => r.ID.toString() === id.toString());
-          if (idx !== -1) ALL_RECIPES[idx] = recipeData;
-        } else {
-          ALL_RECIPES.unshift(recipeData);
-        }
-        saveToStorage();
-        dom.recipeForm.reset();
-        switchTab('view');
-        renderRecipes(ALL_RECIPES);
-        showLoading(false);
-      }, 500);
+      const id = dom.recipeId.value;
+      const recipeData = {
+        ID: id || "rec_" + new Date().getTime(),
+        食譜名稱: document.getElementById('recipeName').value,
+        熱量: Number(document.getElementById('calories').value) || 0,
+        碳水: Number(document.getElementById('carbs').value) || 0,
+        蛋白質: Number(document.getElementById('protein').value) || 0,
+        脂肪: Number(document.getElementById('fat').value) || 0,
+        材料: document.getElementById('ingredients').value,
+        做法: document.getElementById('steps').value
+      };
+
+      await postToCloud({ action: "saveRecipe", data: recipeData });
+      dom.recipeForm.reset();
+      switchTab('view');
+      await fetchCloudRecipes();
     });
 
     function dataEdit(id) {
@@ -521,13 +543,13 @@
       document.getElementById('carbs').value = item.碳水;
       document.getElementById('protein').value = item.蛋白質;
       document.getElementById('fat').value = item.脂肪;
-      document.getElementById('ingredients').value = item.材料;
-      document.getElementById('steps').value = item.做法;
+      document.getElementById('ingredients').value = item.材料 || '';
+      document.getElementById('steps').value = item.做法 || '';
       switchTab('form');
     }
 
-    // 頁籤分頁切換
-    function switchTab(tab) {
+    // 核心 SPA 分頁控制
+    async function switchTab(tab) {
       CURRENT_TAB = tab;
       dom.viewTab.classList.add('hidden');
       dom.recordTab.classList.add('hidden');
@@ -539,10 +561,11 @@
       if (tab === 'view') {
         dom.viewTab.classList.remove('hidden');
         dom.navView.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
+        renderRecipes(ALL_RECIPES);
       } else if (tab === 'record') {
         dom.recordTab.classList.remove('hidden');
         dom.navRecord.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
-        renderDailyLogs();
+        await fetchCloudDailyLogs();
       } else {
         dom.formTab.classList.remove('hidden');
         dom.navAdd.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
@@ -551,7 +574,10 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function showLoading(show) { dom.loading.classList.toggle('hidden', !show); }
+    function showLoading(show, text = "載入中...") { 
+      dom.loadingText.innerText = text;
+      dom.loading.classList.toggle('hidden', !show); 
+    }
 
     dom.navView.addEventListener('click', () => switchTab('view'));
     dom.navRecord.addEventListener('click', () => switchTab('record'));
