@@ -272,7 +272,7 @@
       renderRecipes(filtered);
     });
 
-    // 表單提交（在記憶體中新增與修改，網頁重新整理後會恢復原狀）
+// 表單提交（在記憶體中新增與修改，網頁重新整理後會恢復原狀）
     dom.recipeForm.addEventListener('submit', (e) => {
       e.preventDefault();
       showLoading(true);
@@ -291,4 +291,71 @@
           做法: document.getElementById('steps').value
         };
 
-        if
+        if (id) {
+          // 編輯現有資料
+          const idx = ALL_RECIPES.findIndex(r => r.ID.toString() === id.toString());
+          if (idx !== -1) ALL_RECIPES[idx] = recipeData;
+        } else {
+          // 新增資料
+          ALL_RECIPES.unshift(recipeData);
+        }
+
+        dom.recipeForm.reset();
+        dom.recipeId.value = "";
+        switchTab('view');
+        renderRecipes(ALL_RECIPES);
+        calculateSummary();
+        showLoading(false);
+      }, 600);
+    });
+
+    // 點擊編輯
+    function dataEdit(id) {
+      const item = ALL_RECIPES.find(r => r.ID.toString() === id.toString());
+      if (!item) return;
+
+      dom.formTitle.innerHTML = "✏️ 編輯食譜明細";
+      dom.recipeId.value = item.ID;
+      document.getElementById('recipeName').value = item.食譜名稱;
+      document.getElementById('calories').value = item.熱量;
+      document.getElementById('carbs').value = item.碳水;
+      document.getElementById('protein').value = item.蛋白質;
+      document.getElementById('fat').value = item.脂肪;
+      document.getElementById('ingredients').value = item.材料;
+      document.getElementById('steps').value = item.做法;
+
+      switchTab('form');
+    }
+
+    function switchTab(tab) {
+      if (tab === 'view') {
+        dom.viewTab.classList.remove('hidden');
+        dom.formTab.classList.add('hidden');
+        dom.navView.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
+        dom.navView.classList.remove('text-gray-400');
+        dom.navAdd.classList.remove('bg-[#FFEDD5]', 'text-[#7C5936]');
+        dom.navAdd.classList.add('text-gray-400');
+      } else {
+        dom.viewTab.classList.add('hidden');
+        dom.formTab.classList.remove('hidden');
+        dom.navAdd.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
+        dom.navAdd.classList.remove('text-gray-400');
+        dom.navView.classList.remove('bg-[#FFEDD5]', 'text-[#7C5936]');
+        dom.navView.classList.add('text-gray-400');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showLoading(show) {
+      dom.loading.classList.toggle('hidden', !show);
+    }
+
+    dom.navView.addEventListener('click', () => switchTab('view'));
+    dom.navAdd.addEventListener('click', () => {
+      dom.formTitle.innerHTML = "✨ 新增健康食譜";
+      dom.recipeId.value = "";
+      dom.recipeForm.reset();
+      switchTab('form');
+    });
+    dom.cancelBtn.addEventListener('click', () => switchTab('view'));
+  </script>
