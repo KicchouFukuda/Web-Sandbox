@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>🧸 我的雲端食譜</title>
+  <title>🧸 我的雲端食譜 (Demo)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
       font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
       touch-action: manipulation;
     }
-    .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 7rem); }
+    .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 9rem); }
   </style>
 </head>
 <body class="bg-[#FDFBF7] text-[#5C4D3C] min-h-screen flex flex-col selection:bg-orange-200">
@@ -22,9 +22,9 @@
   <header class="bg-[#FFEDD5] border-b-4 border-[#E2C2A4] sticky top-0 z-40 shadow-sm">
     <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
       <h1 class="text-xl font-bold tracking-wider text-[#7C5936] flex items-center gap-1.5">
-        <span>👨‍🍳</span> 我的食譜
+        <span>👨‍🍳</span> 我的食譜記錄本
       </h1>
-      <span class="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-md border border-amber-400">Demo 模式</span>
+      <span class="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-md border border-amber-400">本地存儲版</span>
     </div>
   </header>
 
@@ -43,8 +43,7 @@
           class="w-full border-3 border-[#E2C2A4] rounded-2xl px-4 py-2.5 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#F0A98F] placeholder:text-gray-400 font-medium">
       </div>
       
-      <div id="recipeList" class="space-y-4">
-        </div>
+      <div id="recipeList" class="space-y-4"></div>
     </section>
 
     <section id="formTab" class="hidden bg-white p-5 rounded-3xl border-4 border-[#E2C2A4] shadow-sm space-y-4">
@@ -95,13 +94,102 @@
       </form>
     </section>
 
+    <section id="recordTab" class="hidden space-y-4">
+      
+      <div class="bg-[#FFFBEB] p-3.5 rounded-2xl border-2 border-[#E2C2A4] flex items-center justify-between gap-2 shadow-sm">
+        <label for="logDate" class="text-xs font-bold text-[#7C5936] whitespace-nowrap flex items-center gap-1">📅 選擇查看日期：</label>
+        <input type="date" id="logDate" class="flex-1 max-w-[180px] bg-white border-2 border-[#E2C2A4] rounded-xl px-2 py-1.5 text-sm font-bold text-[#5C4D3C] focus:outline-none focus:border-[#F0A98F]">
+      </div>
+
+      <div class="bg-white p-4 rounded-3xl border-3 border-[#E2C2A4] shadow-[0_4px_0_#E2C2A4]">
+        <div class="flex justify-between items-center border-b-2 border-dashed border-[#E2C2A4] pb-2 mb-2">
+          <h3 class="font-bold text-[#7C5936] flex items-center gap-1">🍳 早餐記錄</h3>
+          <button onclick="openManualLogModal('breakfast')" class="text-xs bg-[#FFEDD5] border border-[#E2C2A4] px-2.5 py-1 rounded-xl font-bold text-[#7C5936]">➕ 手動填入</button>
+        </div>
+        <div id="list-breakfast" class="space-y-1.5 text-xs font-medium text-gray-600"></div>
+      </div>
+
+      <div class="bg-white p-4 rounded-3xl border-3 border-[#E2C2A4] shadow-[0_4px_0_#E2C2A4]">
+        <div class="flex justify-between items-center border-b-2 border-dashed border-[#E2C2A4] pb-2 mb-2">
+          <h3 class="font-bold text-[#7C5936] flex items-center gap-1">🍱 午餐記錄</h3>
+          <button onclick="openManualLogModal('lunch')" class="text-xs bg-[#FFEDD5] border border-[#E2C2A4] px-2.5 py-1 rounded-xl font-bold text-[#7C5936]">➕ 手動填入</button>
+        </div>
+        <div id="list-lunch" class="space-y-1.5 text-xs font-medium text-gray-600"></div>
+      </div>
+
+      <div class="bg-white p-4 rounded-3xl border-3 border-[#E2C2A4] shadow-[0_4px_0_#E2C2A4]">
+        <div class="flex justify-between items-center border-b-2 border-dashed border-[#E2C2A4] pb-2 mb-2">
+          <h3 class="font-bold text-[#7C5936] flex items-center gap-1">🍲 晚餐記錄</h3>
+          <button onclick="openManualLogModal('dinner')" class="text-xs bg-[#FFEDD5] border border-[#E2C2A4] px-2.5 py-1 rounded-xl font-bold text-[#7C5936]">➕ 手動填入</button>
+        </div>
+        <div id="list-dinner" class="space-y-1.5 text-xs font-medium text-gray-600"></div>
+      </div>
+
+      <div class="bg-white p-4 rounded-3xl border-3 border-[#E2C2A4] shadow-[0_4px_0_#E2C2A4]">
+        <div class="flex justify-between items-center border-b-2 border-dashed border-[#E2C2A4] pb-2 mb-2">
+          <h3 class="font-bold text-[#7C5936] flex items-center gap-1">🍎 其他/點心</h3>
+          <button onclick="openManualLogModal('other')" class="text-xs bg-[#FFEDD5] border border-[#E2C2A4] px-2.5 py-1 rounded-xl font-bold text-[#7C5936]">➕ 手動填入</button>
+        </div>
+        <div id="list-other" class="space-y-1.5 text-xs font-medium text-gray-600"></div>
+      </div>
+    </section>
+
   </main>
 
-  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-[#E2C2A4] z-30">
+  <div id="manualLogModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xs p-5 rounded-3xl border-4 border-[#E2C2A4] shadow-xl space-y-3 font-bold text-sm">
+      <h3 id="modalLogTitle" class="text-[#7C5936] border-b pb-1">➕ 手動記一筆</h3>
+      <input type="hidden" id="modalLogMealType">
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">食物名稱</label>
+        <input type="text" id="logName" required class="w-full border-2 border-[#E2C2A4] rounded-xl p-2 font-medium" placeholder="例如：香蕉、茶葉蛋">
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <label class="block text-gray-400 mb-0.5">🔥 熱量(kcal)</label>
+          <input type="number" id="logCal" class="w-full border-2 border-[#E2C2A4] rounded-lg p-1 text-center" value="0">
+        </div>
+        <div>
+          <label class="block text-gray-400 mb-0.5">🍞 碳水(g)</label>
+          <input type="number" id="logCarbs" step="0.1" class="w-full border-2 border-[#E2C2A4] rounded-lg p-1 text-center" value="0">
+        </div>
+        <div>
+          <label class="block text-gray-400 mb-0.5">🥩 蛋白(g)</label>
+          <input type="number" id="logProtein" step="0.1" class="w-full border-2 border-[#E2C2A4] rounded-lg p-1 text-center" value="0">
+        </div>
+        <div>
+          <label class="block text-gray-400 mb-0.5">🥑 脂肪(g)</label>
+          <input type="number" id="logFat" step="0.1" class="w-full border-2 border-[#E2C2A4] rounded-lg p-1 text-center" value="0">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button onclick="closeManualLogModal()" class="flex-1 bg-gray-100 py-2 rounded-xl text-xs border border-gray-300">取消</button>
+        <button onclick="saveManualLog()" class="flex-1 bg-[#F0A98F] text-white py-2 rounded-xl text-xs border border-[#D98366]">確認加入</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="importMealModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xs p-5 rounded-3xl border-4 border-[#E2C2A4] shadow-xl text-center font-bold space-y-4">
+      <h3 class="text-[#7C5936] border-b pb-2">🍱 要匯入到哪一餐呢？</h3>
+      <div class="grid grid-cols-1 gap-2">
+        <button onclick="executeImport('breakfast')" class="py-2.5 bg-[#FFF7ED] border-2 border-[#E2C2A4] rounded-xl text-[#7C5936] active:bg-orange-100">🍳 早餐記錄</button>
+        <button onclick="executeImport('lunch')" class="py-2.5 bg-[#FEFCE8] border-2 border-[#E2C2A4] rounded-xl text-[#7C5936] active:bg-yellow-100">🍱 午餐記錄</button>
+        <button onclick="executeImport('dinner')" class="py-2.5 bg-[#EEF2FF] border-2 border-[#E2C2A4] rounded-xl text-[#7C5936] active:bg-indigo-100">🍲 晚餐記錄</button>
+        <button onclick="executeImport('other')" class="py-2.5 bg-[#F0FDF4] border-2 border-[#E2C2A4] rounded-xl text-[#7C5936] active:bg-green-100">🍎 其他 / 點心</button>
+      </div>
+      <button onclick="closeImportMealModal()" class="w-full text-xs text-gray-400 pt-2 underline">取消</button>
+    </div>
+  </div>
+
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-[#E2C2A4] z-30 shadow-lg">
     <div class="max-w-md mx-auto">
       
       <div id="summaryPanel" class="bg-[#FFFBEB] px-4 py-3 border-b-2 border-dashed border-[#E2C2A4]">
-        <div class="text-xs font-bold text-[#7C5936] mb-1.5 flex items-center gap-1">✨ 今日菜單總計：</div>
+        <div class="text-xs font-bold text-[#7C5936] mb-1.5 flex justify-between items-center">
+          <span id="summaryTitle">✨ 菜單勾選總計：</span>
+          <button id="importBtn" class="hidden bg-[#F0A98F] text-white border border-[#D98366] px-2 py-0.5 rounded-lg text-[11px] animate-pulse">📥 匯入至每日記錄</button>
+        </div>
         <div class="grid grid-cols-4 text-center text-xs font-bold gap-1 bg-white p-2 rounded-xl border-2 border-[#E2C2A4]">
           <div class="text-orange-600">🔥 <span id="totalCal" class="block text-sm">0</span><span class="text-[10px] text-gray-400">kcal</span></div>
           <div class="text-yellow-600">🍞 <span id="totalCarbs" class="block text-sm">0</span><span class="text-[10px] text-gray-400">碳水(g)</span></div>
@@ -110,130 +198,138 @@
         </div>
       </div>
       
-      <div class="grid grid-cols-2 h-16 text-sm font-bold">
+      <div class="grid grid-cols-3 h-16 text-xs font-bold border-t">
         <button id="navView" class="flex flex-col items-center justify-center text-[#7C5936] bg-[#FFEDD5]">
           <span class="text-xl">📖</span>
-          <span class="text-xs mt-0.5">菜單瀏覽</span>
+          <span class="mt-0.5">菜單瀏覽</span>
+        </button>
+        <button id="navRecord" class="flex flex-col items-center justify-center text-gray-400 hover:text-[#7C5936] transition-colors">
+          <span class="text-xl">📝</span>
+          <span class="mt-0.5">每日記錄</span>
         </button>
         <button id="navAdd" class="flex flex-col items-center justify-center text-gray-400 hover:text-[#7C5936] transition-colors">
           <span class="text-xl">🍳</span>
-          <span class="text-xs mt-0.5">新增食譜</span>
+          <span class="mt-0.5">新增食譜</span>
         </button>
       </div>
     </div>
   </footer>
 
   <script>
-	console.log("👉 檢查點：JavaScript 核心成功啟動！", new Date().getTime());
-    // 🍓 內建的 Demo 模擬數據
-    let ALL_RECIPES = [
-      {
-        ID: "demo_1",
-        食譜名稱: "🍓 草莓雲朵厚鬆餅",
-        熱量: 320,
-        碳水: 45,
-        蛋白質: 12,
-        脂肪: 10,
-        材料: "低筋麵粉 100g\n雞蛋 2顆\n鮮牛奶 60ml\n新鮮草莓 5顆\n蜂蜜 適量",
-        做法: "1. 將蛋黃與蛋白分離，蛋白打發至乾性發泡。\n2. 蛋黃與牛奶、麵粉攪拌均勻後，輕輕拌入打發蛋白。\n3. 平底鍋小火微熱，慢煎至兩面金黃蓬鬆。\n4. 擺上草莓，淋上蜂蜜就完成啦！"
-      },
-      {
-        ID: "demo_2",
-        食譜名稱: "🥑 繽紛酪梨蝦仁沙拉",
-        熱量: 260,
-        碳水: 12,
-        蛋白質: 18,
-        脂肪: 16,
-        材料: "熟酪梨 半顆\n鮮蝦仁 8隻\n小番茄 6顆\n生菜葉 隨意\n橄欖油油醋汁 1湯匙",
-        做法: "1. 蝦仁燙熟放涼備用。\n2. 酪梨切丁，小番茄對半切開。\n3. 將所有食材鋪在生菜上。\n4. 均勻淋上油醋汁，輕輕翻拌即可享用。"
-      },
-      {
-        ID: "demo_3",
-        食譜名稱: "🍗 日式蜂蜜照燒雞胸肉",
-        熱量: 380,
-        碳水: 15,
-        蛋白質: 35,
-        脂肪: 8,
-        材料: "優質雞胸肉 200g\n醬油 2湯匙\n蜂蜜 1湯匙\n味醂 1湯匙\n白芝麻 少許",
-        做法: "1. 雞胸肉切厚片，用少許鹽巴稍微抓醃。\n2. 調製照燒醬：將醬油、蜂蜜、味醂與少許水攪拌均勻。\n3. 熱鍋下少許油，將雞胸肉兩面煎至微焦。\n4. 倒入照燒醬汁小火收汁，起鍋前撒上白芝麻。"
-      }
+    // 🍓 預設的 Demo 食譜數據
+    const DEFAULT_RECIPES = [
+      { ID: "demo_1", 食譜名稱: "🍓 草莓雲朵厚鬆餅", 熱量: 320, 碳水: 45, 蛋白質: 12, 脂肪: 10, 材料: "低筋麵粉 100g\n雞蛋 2顆", 做法: "1. 打發蛋白..." },
+      { ID: "demo_2", 食譜名稱: "🥑 繽紛酪梨蝦仁沙拉", 熱量: 260, 碳水: 12, 蛋白質: 18, 脂肪: 16, 材料: "熟酪梨 半顆\n鮮蝦仁 8隻", 做法: "1. 蝦仁燙熟..." },
+      { ID: "demo_3", 食譜名稱: "🍗 日式蜂蜜照燒雞胸肉", 熱量: 380, 碳水: 15, 蛋白質: 35, 脂肪: 8, 材料: "優質雞胸肉 200g", 做法: "1. 雞胸肉切厚片..." }
     ]; 
 
-    let SELECTED_IDS = new Set(); // 記錄當前選取的食譜 ID
+    // 從 LocalStorage 載入食譜，若沒有則用預設值
+    let ALL_RECIPES = JSON.parse(localStorage.getItem('ALL_RECIPES'));
+    if (!ALL_RECIPES) {
+      ALL_RECIPES = DEFAULT_RECIPES;
+      localStorage.setItem('ALL_RECIPES', JSON.stringify(ALL_RECIPES));
+    }
+
+    // 從 LocalStorage 載入大飲食日誌字典。格式： { "2026-06-08": { breakfast: [], lunch: [], ... } }
+    let MASTER_LOGS = JSON.parse(localStorage.getItem('MASTER_LOGS')) || {};
+
+    let SELECTED_IDS = new Set(); // 記錄當前菜單勾選的 ID
+    let CURRENT_TAB = 'view';     // view, record, form
+    let TARGET_DATE = "";         // 當前選定的記錄日期 (YYYY-MM-DD)
 
     const dom = {
-      loading: document.getElementById('loading'),
       viewTab: document.getElementById('viewTab'),
       formTab: document.getElementById('formTab'),
+      recordTab: document.getElementById('recordTab'),
       recipeList: document.getElementById('recipeList'),
       searchBar: document.getElementById('searchBar'),
       recipeForm: document.getElementById('recipeForm'),
       formTitle: document.getElementById('formTitle'),
       recipeId: document.getElementById('recipeId'),
       navView: document.getElementById('navView'),
+      navRecord: document.getElementById('navRecord'),
       navAdd: document.getElementById('navAdd'),
       cancelBtn: document.getElementById('cancelBtn'),
+      importBtn: document.getElementById('importBtn'),
+      summaryTitle: document.getElementById('summaryTitle'),
       totalCal: document.getElementById('totalCal'),
       totalCarbs: document.getElementById('totalCarbs'),
       totalProtein: document.getElementById('totalProtein'),
-      totalFat: document.getElementById('totalFat')
+      totalFat: document.getElementById('totalFat'),
+      loading: document.getElementById('loading'),
+      logDate: document.getElementById('logDate')
     };
 
-    // 初始化網頁
     window.addEventListener('DOMContentLoaded', () => {
+      // 預設日期為「今天」
+      const today = new Date().toISOString().split('T')[0];
+      dom.logDate.value = today;
+      TARGET_DATE = today;
+
       renderRecipes(ALL_RECIPES);
-      calculateSummary();
+      updateUI();
+
+      // 監聽日期更換
+      dom.logDate.addEventListener('change', (e) => {
+        TARGET_DATE = e.target.value;
+        renderDailyLogs();
+        updateUI();
+      });
     });
+
+    // 取得當天特定日期的資料結構，如果沒有就初始化空的
+    function getDayLog(dateStr) {
+      if (!MASTER_LOGS[dateStr]) {
+        MASTER_LOGS[dateStr] = { breakfast: [], lunch: [], dinner: [], other: [] };
+      }
+      return MASTER_LOGS[dateStr];
+    }
+
+    // 存入 LocalStorage 保持永久記憶
+    function saveToStorage() {
+      localStorage.setItem('MASTER_LOGS', JSON.stringify(MASTER_LOGS));
+      localStorage.setItem('ALL_RECIPES', JSON.stringify(ALL_RECIPES));
+    }
 
     // 渲染食譜卡片
     function renderRecipes(recipes) {
-		console.log("renderRecipes", new Date().getTime());
       dom.recipeList.innerHTML = "";
       if (recipes.length === 0) {
-        dom.recipeList.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm font-bold">裡面空空如也，找不到這道料理呢 🍓</div>`;
+        dom.recipeList.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm font-bold">找不到這道料理呢 🍓</div>`;
         return;
       }
-
       recipes.forEach(item => {
         const isChecked = SELECTED_IDS.has(item.ID.toString()) ? 'checked' : '';
         const card = document.createElement('div');
-        card.className = "bg-white p-4 rounded-3xl border-3 border-[#E2C2A4] shadow-[0_4px_0_#E2C2A4] flex gap-3 items-start transition active:translate-y-0.5 active:shadow-none";
+        card.className = "bg-white p-4 rounded-3xl border-3 border-[#E2C2A4] shadow-[0_4px_0_#E2C2A4] flex gap-3 items-start transition active:scale-[0.99]";
         card.innerHTML = `
-          <div class="pt-1">
-            <input type="checkbox" data-id="${item.ID}" ${isChecked} class="recipe-checkbox w-5 h-5 rounded-md border-2 border-[#E2C2A4] text-[#F0A98F] focus:ring-[#F0A98F]">
-          </div>
+          <div class="pt-1"><input type="checkbox" data-id="${item.ID}" ${isChecked} class="recipe-checkbox w-5 h-5 rounded-md border-2 border-[#E2C2A4] text-[#F0A98F] focus:ring-[#F0A98F]"></div>
           <div class="flex-1" onclick="toggleDetails('${item.ID}')">
             <div class="flex justify-between items-start">
               <h3 class="font-bold text-[#5C4D3C] text-base">${item.食譜名稱}</h3>
-              <button onclick="event.stopPropagation(); dataEdit('${item.ID}')" class="text-xs text-[#7C5936] font-bold px-2.5 py-1 bg-[#FFEDD5] border border-[#E2C2A4] rounded-xl shadow-[0_1.5px_0_#E2C2A4] active:translate-y-0.5 active:shadow-none">編輯</button>
+              <button onclick="event.stopPropagation(); dataEdit('${item.ID}')" class="text-xs text-[#7C5936] font-bold px-2.5 py-1 bg-[#FFEDD5] border border-[#E2C2A4] rounded-xl shadow-[0_1.5px_0_#E2C2A4]">編輯</button>
             </div>
-            
-            <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#8C7662] mt-2 font-bold">
-              <span class="bg-orange-50 px-1.5 py-0.5 rounded-md">🔥 ${item.熱量} kcal</span>
+            <div class="flex flex-wrap gap-x-2.5 gap-y-1 text-xs text-[#8C7662] mt-2 font-bold">
+              <span class="bg-orange-50 px-1.5 py-0.5 rounded-md">🔥 ${item.熱量}</span>
               <span class="bg-yellow-50 px-1.5 py-0.5 rounded-md">🍞 碳水 ${item.碳水}g</span>
               <span class="bg-indigo-50 px-1.5 py-0.5 rounded-md">🥩 蛋 ${item.蛋白質}g</span>
               <span class="bg-green-50 px-1.5 py-0.5 rounded-md">🥑 脂 ${item.脂肪}g</span>
             </div>
-            
-            <div id="detail-${item.ID}" class="hidden mt-3 pt-3 border-t-2 border-dashed border-[#E2C2A4] text-xs space-y-2 text-[#5C4D3C]">
-              <div><strong class="text-[#7C5936] block mb-0.5">🛒 材料：</strong><p class="whitespace-pre-line bg-[#FFFBF7] p-2.5 border border-[#E2C2A4] rounded-xl">${item.材料 || '沒寫材料呢'}</p></div>
-              <div><strong class="text-[#7C5936] block mb-0.5">🍳 做法：</strong><p class="whitespace-pre-line bg-[#FFFBF7] p-2.5 border border-[#E2C2A4] rounded-xl">${item.做法 || '沒寫做法呢'}</p></div>
+            <div id="detail-${item.ID}" class="hidden mt-3 pt-3 border-t-2 border-dashed border-[#E2C2A4] text-xs space-y-2">
+              <div><strong class="text-[#7C5936]">🛒 材料：</strong><p class="whitespace-pre-line bg-[#FFFBF7] p-2 border rounded-xl">${item.材料 || '無'}</p></div>
+              <div><strong class="text-[#7C5936]">🍳 做法：</strong><p class="whitespace-pre-line bg-[#FFFBF7] p-2 border rounded-xl">${item.做法 || '無'}</p></div>
             </div>
           </div>
         `;
         dom.recipeList.appendChild(card);
       });
 
-      // 監聽勾選盒子的狀態改變
       document.querySelectorAll('.recipe-checkbox').forEach(box => {
         box.addEventListener('change', (e) => {
           const id = e.target.getAttribute('data-id').toString();
-          if (e.target.checked) {
-            SELECTED_IDS.add(id);
-          } else {
-            SELECTED_IDS.delete(id);
-          }
-          calculateSummary();
+          if (e.target.checked) SELECTED_IDS.add(id);
+          else SELECTED_IDS.delete(id);
+          updateUI();
         });
       });
     }
@@ -243,18 +339,72 @@
       if(detailDiv) detailDiv.classList.toggle('hidden');
     }
 
-    // 計算總和（直接跑陣列）
-    function calculateSummary() {
-      let totalCal = 0, totalCarbs = 0, totalProtein = 0, totalFat = 0;
+    // 渲染當前日期的飲食記錄清單
+    function renderDailyLogs() {
+      const dayData = getDayLog(TARGET_DATE);
+      const meals = ['breakfast', 'lunch', 'dinner', 'other'];
       
-      ALL_RECIPES.forEach(item => {
-        if (SELECTED_IDS.has(item.ID.toString())) {
-          totalCal += Number(item.熱量) || 0;
-          totalCarbs += Number(item.碳水) || 0;
-          totalProtein += Number(item.蛋白質) || 0;
-          totalFat += Number(item.脂肪) || 0;
+      meals.forEach(type => {
+        const container = document.getElementById(`list-${type}`);
+        container.innerHTML = "";
+        if (dayData[type].length === 0) {
+          container.innerHTML = `<span class="text-gray-300 italic block py-1">這天還沒有填寫記錄唷～</span>`;
+          return;
         }
+        dayData[type].forEach((log, index) => {
+          const item = document.createElement('div');
+          item.className = "flex justify-between items-center bg-[#FFFBF7] p-2 border border-[#E2C2A4] rounded-xl font-bold text-[#5C4D3C] my-1";
+          item.innerHTML = `
+            <div>
+              <span class="text-sm">${log.name}</span>
+              <span class="text-[10px] text-gray-400 block font-normal">🔥${log.calories}kcal | 🍞${log.carbs}g | 🥩${log.protein}g | 🥑${log.fat}g</span>
+            </div>
+            <button onclick="deleteLog('${type}', ${index})" class="text-red-400 text-xs px-2 py-1">❌</button>
+          `;
+          container.appendChild(item);
+        });
       });
+    }
+
+    // 刪除某筆記錄
+    function deleteLog(type, index) {
+      const dayData = getDayLog(TARGET_DATE);
+      dayData[type].splice(index, 1);
+      saveToStorage();
+      renderDailyLogs();
+      updateUI();
+    }
+
+    // 核心數據加總控制
+    function updateUI() {
+      let totalCal = 0, totalCarbs = 0, totalProtein = 0, totalFat = 0;
+
+      if (CURRENT_TAB === 'record') {
+        dom.summaryTitle.innerText = `✨ ${TARGET_DATE} 攝取總加總：`;
+        dom.importBtn.classList.add('hidden');
+        
+        const dayData = getDayLog(TARGET_DATE);
+        ['breakfast', 'lunch', 'dinner', 'other'].forEach(type => {
+          dayData[type].forEach(log => {
+            totalCal += log.calories;
+            totalCarbs += log.carbs;
+            totalProtein += log.protein;
+            totalFat += log.fat;
+          });
+        });
+      } else {
+        dom.summaryTitle.innerText = "✨ 菜單勾選總計：";
+        ALL_RECIPES.forEach(item => {
+          if (SELECTED_IDS.has(item.ID.toString())) {
+            totalCal += Number(item.熱量) || 0;
+            totalCarbs += Number(item.碳水) || 0;
+            totalProtein += Number(item.蛋白質) || 0;
+            totalFat += Number(item.脂肪) || 0;
+          }
+        });
+        if (SELECTED_IDS.size > 0 && CURRENT_TAB === 'view') dom.importBtn.classList.remove('hidden');
+        else dom.importBtn.classList.add('hidden');
+      }
 
       dom.totalCal.innerText = totalCal;
       dom.totalCarbs.innerText = totalCarbs.toFixed(1);
@@ -262,22 +412,76 @@
       dom.totalFat.innerText = totalFat.toFixed(1);
     }
 
-    // 本地搜尋過濾
+    // 匯入功能邏輯
+    dom.importBtn.addEventListener('click', () => {
+      document.getElementById('importMealModal').classList.remove('hidden');
+    });
+    function closeImportMealModal() {
+      document.getElementById('importMealModal').classList.add('hidden');
+    }
+    function executeImport(mealType) {
+      const dayData = getDayLog(TARGET_DATE);
+      ALL_RECIPES.forEach(item => {
+        if (SELECTED_IDS.has(item.ID.toString())) {
+          dayData[mealType].push({
+            name: item.食譜名稱,
+            calories: Number(item.熱量) || 0,
+            carbs: Number(item.碳水) || 0,
+            protein: Number(item.蛋白質) || 0,
+            fat: Number(item.脂肪) || 0
+          });
+        }
+      });
+      SELECTED_IDS.clear();
+      saveToStorage();
+      renderRecipes(ALL_RECIPES);
+      closeImportMealModal();
+      switchTab('record'); 
+    }
+
+    // 手動填入控制
+    function openManualLogModal(mealType) {
+      const typeNames = { breakfast: '早餐 🍳', lunch: '午餐 🍱', dinner: '晚餐 🍲', other: '其他 🍎' };
+      document.getElementById('modalLogTitle').innerText = `➕ 手動記一筆 - ${typeNames[mealType]}`;
+      document.getElementById('modalLogMealType').value = mealType;
+      document.getElementById('logName').value = "";
+      document.getElementById('logCal').value = 0;
+      document.getElementById('logCarbs').value = 0;
+      document.getElementById('logProtein').value = 0;
+      document.getElementById('logFat').value = 0;
+      document.getElementById('manualLogModal').classList.remove('hidden');
+    }
+    function closeManualLogModal() {
+      document.getElementById('manualLogModal').classList.add('hidden');
+    }
+    function saveManualLog() {
+      const type = document.getElementById('modalLogMealType').value;
+      const name = document.getElementById('logName').value.trim() || "未命名食物";
+      const dayData = getDayLog(TARGET_DATE);
+      dayData[type].push({
+        name: name,
+        calories: Number(document.getElementById('logCal').value) || 0,
+        carbs: Number(document.getElementById('logCarbs').value) || 0,
+        protein: Number(document.getElementById('logProtein').value) || 0,
+        fat: Number(document.getElementById('logFat').value) || 0
+      });
+      saveToStorage();
+      renderDailyLogs();
+      updateUI();
+      closeManualLogModal();
+    }
+
+    // 搜尋過濾
     dom.searchBar.addEventListener('input', (e) => {
       const keyword = e.target.value.toLowerCase();
-      const filtered = ALL_RECIPES.filter(item => 
-        item.食譜名稱.toLowerCase().includes(keyword) || 
-        item.材料.toLowerCase().includes(keyword)
-      );
+      const filtered = ALL_RECIPES.filter(item => item.食譜名稱.toLowerCase().includes(keyword) || item.材料.toLowerCase().includes(keyword));
       renderRecipes(filtered);
     });
 
-// 表單提交（在記憶體中新增與修改，網頁重新整理後會恢復原狀）
+    // 儲存/新增食譜
     dom.recipeForm.addEventListener('submit', (e) => {
       e.preventDefault();
       showLoading(true);
-
-      // 用定時器模擬一小段載入感，更真實可愛
       setTimeout(() => {
         const id = dom.recipeId.value;
         const recipeData = {
@@ -290,30 +494,23 @@
           材料: document.getElementById('ingredients').value,
           做法: document.getElementById('steps').value
         };
-
         if (id) {
-          // 編輯現有資料
           const idx = ALL_RECIPES.findIndex(r => r.ID.toString() === id.toString());
           if (idx !== -1) ALL_RECIPES[idx] = recipeData;
         } else {
-          // 新增資料
           ALL_RECIPES.unshift(recipeData);
         }
-
+        saveToStorage();
         dom.recipeForm.reset();
-        dom.recipeId.value = "";
         switchTab('view');
         renderRecipes(ALL_RECIPES);
-        calculateSummary();
         showLoading(false);
-      }, 600);
+      }, 500);
     });
 
-    // 點擊編輯
     function dataEdit(id) {
       const item = ALL_RECIPES.find(r => r.ID.toString() === id.toString());
       if (!item) return;
-
       dom.formTitle.innerHTML = "✏️ 編輯食譜明細";
       dom.recipeId.value = item.ID;
       document.getElementById('recipeName').value = item.食譜名稱;
@@ -323,34 +520,38 @@
       document.getElementById('fat').value = item.脂肪;
       document.getElementById('ingredients').value = item.材料;
       document.getElementById('steps').value = item.做法;
-
       switchTab('form');
     }
 
+    // 頁籤分頁切換
     function switchTab(tab) {
+      CURRENT_TAB = tab;
+      dom.viewTab.classList.add('hidden');
+      dom.recordTab.classList.add('hidden');
+      dom.formTab.classList.add('hidden');
+      
+      [dom.navView, dom.navRecord, dom.navAdd].forEach(btn => btn.classList.remove('bg-[#FFEDD5]', 'text-[#7C5936]'));
+      [dom.navView, dom.navRecord, dom.navAdd].forEach(btn => btn.classList.add('text-gray-400'));
+
       if (tab === 'view') {
         dom.viewTab.classList.remove('hidden');
-        dom.formTab.classList.add('hidden');
         dom.navView.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
-        dom.navView.classList.remove('text-gray-400');
-        dom.navAdd.classList.remove('bg-[#FFEDD5]', 'text-[#7C5936]');
-        dom.navAdd.classList.add('text-gray-400');
+      } else if (tab === 'record') {
+        dom.recordTab.classList.remove('hidden');
+        dom.navRecord.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
+        renderDailyLogs();
       } else {
-        dom.viewTab.classList.add('hidden');
         dom.formTab.classList.remove('hidden');
         dom.navAdd.classList.add('bg-[#FFEDD5]', 'text-[#7C5936]');
-        dom.navAdd.classList.remove('text-gray-400');
-        dom.navView.classList.remove('bg-[#FFEDD5]', 'text-[#7C5936]');
-        dom.navView.classList.add('text-gray-400');
       }
+      updateUI();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function showLoading(show) {
-      dom.loading.classList.toggle('hidden', !show);
-    }
+    function showLoading(show) { dom.loading.classList.toggle('hidden', !show); }
 
     dom.navView.addEventListener('click', () => switchTab('view'));
+    dom.navRecord.addEventListener('click', () => switchTab('record'));
     dom.navAdd.addEventListener('click', () => {
       dom.formTitle.innerHTML = "✨ 新增健康食譜";
       dom.recipeId.value = "";
@@ -359,3 +560,5 @@
     });
     dom.cancelBtn.addEventListener('click', () => switchTab('view'));
   </script>
+</body>
+</html>
